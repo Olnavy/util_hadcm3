@@ -61,3 +61,43 @@ def lon_to_index(longitude, target_lon):
 
 def lat_to_index(latitude, target_lat):
     return (np.abs(latitude - target_lat)).argmin()
+
+
+def coordinate_bounds(coordinates):
+    """
+    Create bound file for regriding
+    :param coordinates: 1D and regular!
+    :return:
+
+    """
+    step = coordinates[1] - coordinates[0]
+    return [coordinates[0] - step / 2 + i * step for i in range(len(coordinates) + 1)]
+
+
+def cell_area(n_lon, lat1, lat2):
+    """
+    Area of a cell on a regular lon-lat grid.
+    :param n_lon: number of longitude divisions
+    :param lat1: bottom of the cell
+    :param lat2: top of the cell
+    :return:
+    """
+    r = 6371000
+    lat1_rad, lat2_rad = 2 * np.pi * lat1 / 360, 2 * np.pi * lat2 / 360
+    return 2 * np.pi * r ** 2 * np.abs(np.sin(lat1_rad) - np.sin(lat2_rad)) / n_lon
+
+
+def surface_matrix(lon, lat):
+    """
+    Compute a matrix with all the surfaces values.
+    :param lon:
+    :param lat:
+    :return:
+    """
+    n_j, n_i = len(lat), len(lon)
+    lat_b = coordinate_bounds(lat)
+    surface = np.zeros((n_j, n_i))
+    for i in range(n_i):
+        for j in range(n_j):
+            surface[j, i] = cell_area(n_i, lat_b[j], lat_b[j + 1])
+    return surface
